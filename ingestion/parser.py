@@ -20,24 +20,36 @@ class PDFParser:
             raise
 
     def clean_text(self, text):
-        """
-        The 'Janitor' function.
-        1. Normalizes unicode characters (fixes weird PDF symbols).
-        2. Replaces multiple spaces/newlines with a single space.
-        Why? Embeddings work best on continuous, natural language flow.
-        """
-        # Step 1: Fix broken unicode (e.g., turns "ﬁ" into "fi")
+        
+        # 1. Unicode Normalization (Standardize characters)
         text = unicodedata.normalize('NFKC', text)
         
-        # Step 2: Remove headers/footers (naive approach - adjust regex as needed)
-        # This removes lines that look like just numbers (Page numbers)
-        text = re.sub(r'\n\d+\n', '\n', text)
+        # 2. Fix Hyphenation (Fix split words at end of lines)
+        # Example: "busi-\nness" -> "business"
+        text = re.sub(r'-\n', '', text)
         
-        # Step 3: Collapse whitespace
-        # "Hello    world\nHow are you?" -> "Hello world How are you?"
-        text = re.sub(r'\s+', ' ', text).strip()
+        # 3. The "Smart" Whitespace Fix (THE NEW PART)
+        # Strategy:
+        # A. We replace "Single Newline" with "Space" (Joins sentences)
+        # B. We replace "Double Newline" with "Double Newline" (Preserves paragraphs)
         
-        return text
+        # First, we identify actual paragraphs.
+        # This regex looks for 2 or more newlines and temporarily marks them 
+        # with a special placeholder string that definitely isn't in the text.
+        text = re.sub(r'\n\s*\n', '<<PARAGRAPH_BREAK>>', text)
+        
+        # Now, any remaining single newlines are just line-wraps. 
+        # Replace them with a space.
+        text = re.sub(r'\n', ' ', text)
+        
+        # Finally, restore the paragraph breaks.
+        text = text.replace('<<PARAGRAPH_BREAK>>', '\n\n')
+        
+        # Collapse multiple spaces (but NOT newlines) into one
+        # This regex matches specific horizontal whitespace (tabs, spaces)
+        text = re.sub(r'[ \t]+', ' ', text)
+        
+        return text.strip()
 
     def extract(self):
         """
@@ -84,5 +96,5 @@ if __name__ == "__main__":
         
         # Print the first 500 characters of the first page to verify
         print("\n--- PREVIEW OF PAGE 1 ---")
-        print(data[0]['text'][:500])
+        print(data[35]['text'][:1500])
         print("...")
