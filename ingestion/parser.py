@@ -96,5 +96,5 @@ if __name__ == "__main__":
         
         # Print the first 500 characters of the first page to verify
         print("\n--- PREVIEW OF PAGE 1 ---")
-        print(data[35]['text'][:1500])
+        print(data[0]['text'][:500])
         print("...")
