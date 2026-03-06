@@ -4,13 +4,13 @@ class Settings:
     # --- 1. Database Configuration ---
     # The URL where your MongoDB is running. 
     
-    MONGO_URI = "mongodb://localhost:27017/"
+    MONGO_URI = "mongodb+srv://ankad:XevU3FReMPWpCq02@knowledge.ng82gqk.mongodb.net/?appName=Knowledge"
     
     # The name of the database (folder) inside MongoDB
-    DB_NAME = "rag_db_v1"
+    DB_NAME = "RAG_Project"
     
     # The name of the collection (sheet) inside the database
-    COLLECTION_NAME = "knowledge_base"
+    COLLECTION_NAME = "Knowledge"
     
     
     EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
