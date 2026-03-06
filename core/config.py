@@ -17,9 +17,13 @@ class Settings:
     EMBEDDING_DIMENSIONS = 384
     
     
-    CHUNK_SIZE = 1000
+    CHUNK_SIZE = 500
     
-    CHUNK_OVERLAP = 200
+    CHUNK_OVERLAP = 150
+
+    # --- 4. Vector Search Configuration ---
+    # The name of the index we will create in MongoDB
+    VECTOR_INDEX_NAME = "vector_index"
 
 # We instantiate the class so we can just import 'settings' elsewhere.
 settings = Settings()
