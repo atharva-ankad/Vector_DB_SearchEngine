@@ -8,7 +8,7 @@ class Settings:
     # --- 1. Database Configuration ---
     # The URL where your MongoDB is running. 
     
-    MONGO_URI = os.getenv("key")
+    MONGO_URI = os.getenv("MongoDB_key")
     
     # The name of the database (folder) inside MongoDB
     DB_NAME = "RAG_Project"
@@ -28,6 +28,10 @@ class Settings:
     # --- 4. Vector Search Configuration ---
     # The name of the index we will create in MongoDB
     VECTOR_INDEX_NAME = "vector_index"
+
+    # --- 5. LLM (Groq) Configuration ---
+    GROQ_API_KEY= os.getenv("LLM_API")
+    LLM_MODEL = "qwen/qwen3-32b"
 
 # We instantiate the class so we can just import 'settings' elsewhere.
 settings = Settings()

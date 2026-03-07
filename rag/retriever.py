@@ -51,4 +51,5 @@ class VectorRetriever:
 if __name__ == "__main__":
     retriever = VectorRetriever()
     # Test Query
-    retriever.retrieve("How many moons does Jupiter have?")
+    #retriever.retrieve("How many moons does Jupiter have?")
+    retriever.retrieve(input("Enter your query: "))
