@@ -1,4 +1,16 @@
-# RAG Knowledge Base with MongoDB Atlas & Groq
+<div align="center">
+
+# MongoDB Atlas Vector Search RAG
+A high-performance Retrieval-Augmented Generation system for querying PDF documents using semantic search and context-grounded LLM responses.
+
+![Architecture](https://img.shields.io/badge/Architecture-RAG-blueviolet)
+<br>
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Embeddings](https://img.shields.io/badge/Embeddings-all--MiniLM--L6--v2-FFD700)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Vector_Search-green)
+![LLM](https://img.shields.io/badge/LLM-Groq_API-orange)
+
+</div>
 
 ## Overview
 
@@ -38,7 +50,7 @@ The project operates in two distinct pipelines:
 * **Language:** Python
 * **Database:** MongoDB Atlas (Vector Search)
 * **LLM:** Groq API (Qwen 3 32B)
-* **Embeddings:** Sentence Transformers (Hugging Face)
+* **Embeddings:** Sentence Transformers (all-MiniLM-L6-v2)
 * **PDF Parsing:** PyMuPDF (Fitz)
 * **Orchestration:** LangChain (Text Splitters)
 
