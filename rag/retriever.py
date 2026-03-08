@@ -38,6 +38,7 @@ class VectorRetriever:
         results = list(self.collection.aggregate(pipeline))
         
         # 4. Display Results
+        '''
         print("\n--- TOP RESULTS ---")
         if not results:
             print("⚠️ No results found. (Check if Index is ready/active)")
@@ -45,7 +46,7 @@ class VectorRetriever:
         for result in results:
             print(f"Confidence: {result.get('score', 0):.4f}")
             print(f"Text: {result.get('text', '')[:]}\n")
-            
+        '''    
         return results
 
 if __name__ == "__main__":
