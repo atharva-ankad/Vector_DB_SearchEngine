@@ -1,95 +1,181 @@
-# RAG Knowledge Base with MongoDB Atlas
+# RAG Knowledge Base with MongoDB Atlas & Groq
 
 ## Overview
-This project is a modular **Retrieval-Augmented Generation (RAG)** system designed to ingest, process, and semantically search through PDF documents. By leveraging **MongoDB Atlas Vector Search**, it transforms static documents into a dynamic knowledge base that can be queried using natural language.
 
-The system solves the problem of efficiently retrieving specific information from large documents without manual searching. It uses local embedding models to convert text into vectors, ensuring high privacy and zero inference costs for the embedding step.
+This project is a high-performance **Retrieval-Augmented Generation (RAG)** system designed to ingest PDF documents, index them using semantic vectors, and allow users to query the content using natural language.
+
+The system combines **MongoDB Atlas Vector Search** for retrieval with **Groq's fast inference API** (using the Qwen model) to generate accurate, context-aware answers with citations. It features a modular architecture separating data ingestion, vector processing, and retrieval logic.
 
 ## Key Features
-* **Automated PDF Ingestion:** Robust parsing of PDF files with text cleaning and normalization.
-* **Smart Chunking:** Content-aware text splitting that preserves paragraph structure and context.
-* **Local Embeddings:** Uses Hugging Face's `sentence-transformers` to generate embeddings locally on the CPU.
-* **Vector Search:** Utilizes MongoDB Atlas for scalable, high-speed vector similarity search.
-* **Modular Architecture:** Clean separation of concerns between configuration, ingestion, and retrieval logic.
-* **Singleton Database Connection:** Efficient connection management using the Singleton design pattern.
+
+* **📄 PDF Ingestion:** Robust parsing of PDF documents using `PyMuPDF` with custom text cleaning and normalization.
+* **🧩 Smart Chunking:** Context-aware text splitting using `LangChain`, preserving paragraph structure and semantic meaning.
+* **🧠 Local Embeddings:** Generates embeddings locally using `SentenceTransformers` (`all-MiniLM-L6-v2`) for privacy and efficiency.
+* **⚡ High-Speed Vector Search:** Utilizes MongoDB Atlas Vector Search for scalable similarity retrieval.
+* **🤖 Fast LLM Generation:** Integrates with **Groq API** (running `qwen/qwen3-32b`) for near-instant, factual responses.
+* **📚 Citation Support:** Every answer includes references to the specific page numbers and relevance scores of the source material.
 
 ## System Architecture
-The system is built on two main pipelines:
 
-1.  **The Ingestion Pipeline (Write Path):**
-    * **Parsing:** Raw text is extracted from PDFs using `PyMuPDF`.
-    * **Chunking:** Text is split into overlapping chunks to maintain semantic context.
-    * **Embedding:** Each chunk is converted into a 384-dimensional vector using the `all-MiniLM-L6-v2` model.
-    * **Storage:** Chunks and their vectors are stored in MongoDB Atlas.
+The project operates in two distinct pipelines:
 
-2.  **The Retrieval Pipeline (Read Path):**
-    * **Query Embedding:** The user's question is converted into a vector using the same model.
-    * **Vector Search:** A `$vectorSearch` aggregation pipeline finds the most similar document chunks in MongoDB.
-    * **Ranking:** Results are ranked by cosine similarity score and returned to the user.
+1. **Ingestion Pipeline (Write Path):**
+* Extracts text from PDFs.
+* Cleans and normalizes the text.
+* Chunks text into overlapping segments.
+* Generates vector embeddings (384 dimensions).
+* Stores text, metadata, and vectors in MongoDB.
+
+
+2. **Retrieval Pipeline (Read Path):**
+* Embeds the user's natural language query.
+* Performs a Vector Search (`$vectorSearch`) in MongoDB to find the top $k$ relevant chunks.
+* Constructs a prompt with the retrieved context.
+* Streams the response from the Groq LLM.
+
+
 
 ## Project Structure
-```
-VECTORDB_PROJECT/
+
+```text
+rag-project/
 │
 ├── core/
 │   ├── config.py          # Central configuration (DB URI, Model names, Chunk settings)
-│   └── db_client.py       # Singleton MongoDB connection manager with Atlas support
+│   └── db_client.py       # Singleton MongoDB connection manager
 │
 ├── ingestion/
-│   ├── parser.py          # Extracts and cleans text from PDFs (PyMuPDF)
-│   ├── chunker.py         # Splits text into manageable chunks with overlap
-│   ├── embedder.py        # Generates vector embeddings using SentenceTransformers
-│   └── ingest.py          # Orchestrator script to run the full ingestion pipeline
+│   ├── parser.py          # PDF text extraction and cleaning logic
+│   ├── chunker.py         # Recursive text splitter with metadata handling
+│   ├── embedder.py        # SentenceTransformer wrapper for generating vectors
+│   └── ingest.py          # Main script to run the ingestion pipeline
 │
 ├── rag/
-│   ├── retriever.py       # Performs vector search queries against MongoDB Atlas
-│   └── setup_index.py     # Script to programmatically create the Vector Search Index
+│   ├── retriever.py       # Logic for performing vector search against MongoDB
+│   ├── generator.py       # Interface for Groq LLM generation
+│   └── setup_index.py     # Utility to programmatically create the Atlas Search Index
 │
 ├── data/
-│   └── pdfs/              # Directory for storing source PDF files
+│   └── pdfs/              # Source directory for PDF documents
 │
+├── app.py                 # Main CLI application entry point
 ├── requirements.txt       # Python dependencies
 └── README.md              # Project documentation
+
 ```
 
-##Workflow (Step-by-Step)
-Data Ingestion (ingest.py):
+## Prerequisites
 
-The system loads a PDF from the data/ directory.
+* **Python 3.10+**
+* **MongoDB Atlas Cluster:** You need a cluster (M0 sandbox works) with Vector Search enabled.
+* **Groq API Key:** For the LLM generation.
 
-parser.py cleans artifacts (like hyphenation) and standardizes whitespace.
+## Installation
 
-chunker.py breaks the text into segments (e.g., 500 characters) with overlap.
+1. **Clone the Repository**
+```bash
+git clone https://github.com/yourusername/rag-project.git
+cd rag-project
 
-embedder.py calculates the vector representation for each text segment.
+```
 
-The final documents (Text + Vector + Metadata) are inserted into the MongoDB collection.
 
-Index Creation (setup_index.py):
+2. **Create a Virtual Environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-A search index definition is sent to MongoDB Atlas to map the vector field for similarity search using the Cosine algorithm.
+```
 
-Vector Retrieval (retriever.py):
 
-A user inputs a query (e.g., "What is the summary?").
+3. **Install Dependencies**
+```bash
+pip install -r requirements.txt
 
-The query is embedded into a vector.
+```
 
-The system executes a vector search query on Atlas.
 
-The top K most relevant text chunks are displayed with their confidence scores.
+4. **Environment Configuration**
+Create a `.env` file in the root directory and add your credentials:
+```ini
+MongoDB_key=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+LLM_API=gsk_your_groq_api_key_here
 
-##Technologies Used
-Python 3.10+: Core programming language.
+```
 
-MongoDB Atlas: Cloud-native database for storing data and performing Vector Search.
 
-PyMongo: Official MongoDB driver for Python.
 
-Sentence Transformers (Hugging Face): Library for generating state-of-the-art text embeddings (all-MiniLM-L6-v2).
+## Usage
 
-PyMuPDF (fitz): High-performance PDF parsing and text extraction.
+### 1. Ingest Data
 
-LangChain Text Splitters: Utilities for smart text chunking.
+Place your PDF files into the `data/pdfs/` directory. Run the ingestion script to parse, embed, and upload the data to MongoDB.
 
-NumPy: Used for efficient numerical operations and data handling.
+```bash
+# Must be run from the root directory
+python -m ingestion.ingest
+
+```
+
+*Note: The current configuration clears the database before inserting new data to prevent duplicates during testing.*
+
+### 2. Create Vector Index
+
+If this is your first time running the project, you must create the Vector Search Index in MongoDB Atlas.
+
+```bash
+python -m rag.setup_index
+
+```
+
+*Wait approximately 1 minute after running this for Atlas to build the index.*
+
+### 3. Run the Chat Application
+
+Start the interactive command-line interface to chat with your documents.
+
+```bash
+python app.py
+
+```
+
+## Configuration
+
+You can tweak the system behavior in `core/config.py`:
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `CHUNK_SIZE` | Size of text chunks (characters) | `500` |
+| `CHUNK_OVERLAP` | Overlap between chunks | `150` |
+| `EMBEDDING_MODEL` | HuggingFace model name | `all-MiniLM-L6-v2` |
+| `LLM_MODEL` | Model used by Groq | `qwen/qwen3-32b` |
+| `DB_NAME` | MongoDB Database Name | `RAG_Project` |
+
+## Example Workflow
+
+**User Query:** *"What is the composition of the Sun?"*
+
+1. **Retrieve:** The system converts the query into a vector and finds relevant chunks from `sample.pdf`.
+2. **Context:**
+* *Source 1 (Page 6):* "The Sun is... 92.1% hydrogen, 7.8% helium..."
+* *Source 2 (Page 6):* "The Sun has six regions..."
+
+
+3. **Generate:** The LLM receives this context and answers.
+4. **Output:**
+> The Sun is composed primarily of hydrogen (92.1%) and helium (7.8%), with 0.1% consisting of other elements.
+> **📚 References:**
+> * Page 6 (Score: 0.8921)
+> 
+> 
+
+
+
+## Technologies Used
+
+* **Language:** Python
+* **Database:** MongoDB Atlas (Vector Search)
+* **LLM:** Groq API (Qwen 3 32B)
+* **Embeddings:** Sentence Transformers (Hugging Face)
+* **PDF Parsing:** PyMuPDF (Fitz)
+* **Orchestration:** LangChain (Text Splitters)
