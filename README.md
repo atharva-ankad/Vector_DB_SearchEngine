@@ -29,7 +29,7 @@ The system combines **MongoDB Atlas Vector Search** for retrieval with Groq's fa
 
 ## System Architecture
 
-![](data\RAG_Final.png)
+![](https://github.com/atharva-ankad/RAG/blob/main/data/RAG_Final.png)
 
 The project operates in two distinct pipelines:
 
